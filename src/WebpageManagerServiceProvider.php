@@ -19,8 +19,11 @@ class WebpageManagerServiceProvider extends PackageServiceProvider
 
     public function configurePackage(Package $package): void
     {
-        $package->name(static::$name)
-            ->hasViews();
+        $package
+            ->name(static::$name)
+            ->hasViews()
+            ->hasMigrations(['create_webpage_manager_tables'])
+            ->hasRoute('web');
     }
 
     public function packageBooted(): void

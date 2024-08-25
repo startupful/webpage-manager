@@ -9,7 +9,7 @@ class WebpageManagerPlugin implements Plugin
 {
     public function getId(): string
     {
-        return 'avatar-chat';
+        return 'webpage-manager';
     }
 
     public function register(Panel $panel): void
@@ -17,6 +17,7 @@ class WebpageManagerPlugin implements Plugin
         $panel
         ->resources([
             Resources\WebpageManagerResource::class,
+            Resources\WebpageElementResource::class,
         ]);
     }
 

@@ -1,0 +1,14 @@
+[
+    {
+        "code": "default",
+        "name": "기본 푸터"
+    },
+    {
+        "code": "simple",
+        "name": "심플 푸터"
+    },
+    {
+        "code": "complex",
+        "name": "복잡한 푸터"
+    }
+]
