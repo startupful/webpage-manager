@@ -22,8 +22,9 @@ class WebpageManagerServiceProvider extends PackageServiceProvider
         $package
             ->name(static::$name)
             ->hasViews()
+            ->hasRoute('web')
             ->hasMigrations(['create_webpage_manager_tables'])
-            ->hasRoute('web');
+            ->runsMigrations();
     }
 
     public function packageBooted(): void
@@ -39,6 +40,7 @@ class WebpageManagerServiceProvider extends PackageServiceProvider
     public function boot()
     {
         parent::boot();
+        $this->loadMigrationsFrom(__DIR__.'/../database/migrations');
         $this->loadViewsFrom(__DIR__.'/../resources/views', 'webpage-manager');
     }
 

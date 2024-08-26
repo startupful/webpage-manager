@@ -17,7 +17,9 @@ class WebpageManagerPlugin implements Plugin
         $panel
         ->resources([
             Resources\WebpageManagerResource::class,
+            Resources\MenuManagerResource::class,
             Resources\WebpageElementResource::class,
+            Resources\PageResource::class,
         ]);
     }
 

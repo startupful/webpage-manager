@@ -12,12 +12,11 @@ class WebpageElement extends Model
     protected $fillable = [
         'type',
         'name',
-        'content',
+        'code',
         'is_active',
     ];
 
     protected $casts = [
-        'content' => 'array',
         'is_active' => 'boolean',
     ];
 
