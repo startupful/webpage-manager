@@ -57,7 +57,7 @@ class EditWebpageElement extends EditRecord
                         ->label('템플릿')
                         ->options(fn () => self::getTemplateOptions('header'))
                         ->reactive()
-                        ->afterStateUpdated(fn ($state, callable $set) => $set('header_code', self::getTemplateContent('headers', $state))),
+                        ->afterStateUpdated(fn ($state, callable $set) => $set('header_code', self::getTemplateContent('header', $state))),
                     Textarea::make('header_code')
                         ->label('코드')
                         ->required(),
@@ -75,7 +75,7 @@ class EditWebpageElement extends EditRecord
                         ->label('템플릿')
                         ->options(fn () => self::getTemplateOptions('footer'))
                         ->reactive()
-                        ->afterStateUpdated(fn ($state, callable $set) => $set('footer_code', self::getTemplateContent('footers', $state))),
+                        ->afterStateUpdated(fn ($state, callable $set) => $set('footer_code', self::getTemplateContent('footer', $state))),
                     Textarea::make('footer_code')
                         ->label('코드')
                         ->required(),
