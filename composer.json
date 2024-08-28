@@ -17,7 +17,8 @@
     "require": {
         "php": "^8.1",
         "filament/filament": "^2.0|^3.0",
-        "van-ons/laraberg": "^2.0"
+        "van-ons/laraberg": "^2.0",
+        "livewire/livewire": "^3.0"
     },
     "extra": {
         "laravel": {
