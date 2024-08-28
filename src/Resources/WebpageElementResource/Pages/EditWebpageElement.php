@@ -55,7 +55,7 @@ class EditWebpageElement extends EditRecord
                 ->schema([
                     Select::make('header_template')
                         ->label('템플릿')
-                        ->options(fn () => self::getTemplateOptions('headers'))
+                        ->options(fn () => self::getTemplateOptions('header'))
                         ->reactive()
                         ->afterStateUpdated(fn ($state, callable $set) => $set('header_code', self::getTemplateContent('headers', $state))),
                     Textarea::make('header_code')
@@ -73,7 +73,7 @@ class EditWebpageElement extends EditRecord
                 ->schema([
                     Select::make('footer_template')
                         ->label('템플릿')
-                        ->options(fn () => self::getTemplateOptions('footers'))
+                        ->options(fn () => self::getTemplateOptions('footer'))
                         ->reactive()
                         ->afterStateUpdated(fn ($state, callable $set) => $set('footer_code', self::getTemplateContent('footers', $state))),
                     Textarea::make('footer_code')
