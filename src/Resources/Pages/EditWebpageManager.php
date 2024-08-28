@@ -8,6 +8,8 @@ use Filament\Actions\Action;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Config;
 use Livewire\Attributes\Reactive;
+use Startupful\StartupfulPlugin\Models\PluginSetting;
+use Filament\Notifications\Notification;
 
 class EditWebpageManager extends EditRecord
 {
@@ -28,10 +30,9 @@ class EditWebpageManager extends EditRecord
 
     public function mount($record = null): void
     {
-        $record = static::getResource()::getModel()::firstOrCreate(
-            ['plugin_name' => 'webpage-manager', 'plugin_id' => 1],
+        $generalSettings = PluginSetting::firstOrCreate(
+            ['plugin_name' => 'webpage-manager', 'plugin_id' => 1, 'key' => 'settings'],
             [
-                'key' => 'settings',
                 'value' => json_encode([
                     'homepage_favicon' => null,
                     'homepage_title' => config('app.name'),
@@ -42,30 +43,41 @@ class EditWebpageManager extends EditRecord
             ]
         );
 
-        $this->record = $record;
+        $themeSettings = PluginSetting::firstOrCreate(
+            ['plugin_name' => 'webpage-manager', 'plugin_id' => 1, 'key' => 'theme'],
+            [
+                'value' => json_encode([
+                    'container_width' => 'container',
+                    'primary_color' => '#000000',
+                    'secondary_color' => '#ffffff',
+                    'app_logo' => null,
+                ])
+            ]
+        );
 
-        Log::info('EditWebpageManager mount: Record loaded', ['record' => $record->toArray()]);
+        $this->record = $generalSettings;
 
-        $data = $record->data ?: [];
+        $data = json_decode($generalSettings->value, true);
+        $themeData = json_decode($themeSettings->value, true);
+
+        // Merge general and theme settings
+        $data = array_merge($data, $themeData);
 
         // 파비콘이 존재하는지 확인
         $faviconPath = public_path('favicon.ico');
-        Log::info('Favicon path', ['path' => $faviconPath]);
-        
         if (file_exists($faviconPath)) {
-            Log::info('Favicon file exists');
             $data['homepage_favicon'] = 'favicon.ico';
-            Log::info('Favicon path set', ['path' => 'favicon.ico']);
         } else {
-            Log::info('Favicon file does not exist');
             $data['homepage_favicon'] = null;
         }
 
-        // env 파일에서 기본 값 불러오기
-        $data['homepage_title'] = $data['homepage_title'] ?? Config::get('app.name');
-        $data['homepage_url'] = $data['homepage_url'] ?? Config::get('app.url');
-        $data['site_language'] = $data['site_language'] ?? Config::get('app.locale');
-        $data['homepage_description'] = $data['homepage_description'] ?? '';
+        // 앱 로고가 존재하는지 확인
+        $logoPath = public_path('logo.png');
+        if (file_exists($logoPath)) {
+            $data['app_logo'] = 'logo.png';
+        } else {
+            $data['app_logo'] = null;
+        }
 
         $this->form->fill($data);
 
@@ -78,21 +90,44 @@ class EditWebpageManager extends EditRecord
 
         Log::info('EditWebpageManager save: Form data before save', ['form_data' => $data]);
 
-        // 파비콘 처리
-        if (empty($data['homepage_favicon']) && file_exists(public_path('favicon.ico'))) {
-            $data['homepage_favicon'] = 'favicon.ico';
+        // 일반 설정 저장
+        $generalSettings = [
+            'homepage_favicon',
+            'homepage_title',
+            'homepage_url',
+            'homepage_description',
+            'site_language',
+        ];
+        $generalData = array_intersect_key($data, array_flip($generalSettings));
+        $this->record->update(['value' => json_encode($generalData)]);
+
+        // 테마 설정 저장
+        $themeSettings = [
+            'container_width',
+            'primary_color',
+            'secondary_color',
+            'app_logo',
+        ];
+        $themeData = array_intersect_key($data, array_flip($themeSettings));
+
+        if (isset($themeData['app_logo']) && is_array($themeData['app_logo'])) {
+            $themeData['app_logo'] = $themeData['app_logo'][0] ?? null;
         }
 
-        $this->record->update(['data' => $data]);
-
-        Log::info('EditWebpageManager save: Record updated', ['updated_record' => $this->record->toArray()]);
+        PluginSetting::updateOrCreate(
+            ['plugin_name' => 'webpage-manager', 'plugin_id' => 1, 'key' => 'theme'],
+            ['value' => json_encode($themeData)]
+        );
 
         // env 파일 업데이트
         WebpageManagerResource::updateEnvFile('APP_NAME', $data['homepage_title']);
         WebpageManagerResource::updateEnvFile('APP_URL', $data['homepage_url']);
 
         if ($shouldSendSavedNotification) {
-            $this->notify('success', '설정이 저장되었습니다.');
+            Notification::make()
+                ->title('설정이 저장되었습니다.')
+                ->success()
+                ->send();
         }
 
         if ($shouldRedirect) {

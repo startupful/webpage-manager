@@ -2,17 +2,13 @@
 namespace Startupful\WebpageManager\Resources;
 
 use Startupful\WebpageManager\Resources\PageResource\Pages;
-use Filament\Forms\Components\View;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables\Table;
 use Filament\Forms;
 use Filament\Tables;
 use Startupful\WebpageManager\Models\Page;
-use Filament\Forms\Components\TextInput;
-use Filament\Forms\Components\Textarea;
-use Filament\Forms\Components\RichEditor;
-use FilamentTiptapEditor\TiptapEditor;
+use Filament\Tables\Actions\Action;
 
 class PageResource extends Resource
 {
@@ -41,22 +37,19 @@ class PageResource extends Resource
                     ->required()
                     ->unique(Page::class, 'slug', ignoreRecord: true)
                     ->maxLength(255),
-                TiptapEditor::make('content')
-                    ->label('Content')
-                    ->profile('default')
-                    ->required(),
                 Forms\Components\Select::make('type')
                     ->options([
                         'page' => 'Page',
                         'post' => 'Post',
                     ])
                     ->default('page'),
+                Forms\Components\Toggle::make('is_published')
+                    ->label('Published')
+                    ->inline(false),
                 Forms\Components\Select::make('parent_id')
                     ->label('Parent Page')
                     ->options(Page::all()->pluck('title', 'id')->toArray())
                     ->nullable(),
-                Forms\Components\Toggle::make('is_published')
-                    ->label('Published'),
                 Forms\Components\DateTimePicker::make('published_at')
                     ->nullable(),
                 Forms\Components\Textarea::make('meta_data')
@@ -79,10 +72,25 @@ class PageResource extends Resource
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),
+                Action::make('edit_content')
+                    ->label('Edit Content')
+                    ->url(fn (Page $record): string => route('page.builder', $record))
+                    ->openUrlInNewTab(),
+                Action::make('view_page')
+                    ->label('View Page')
+                    ->url(fn (Page $record): string => url($record->slug))
+                    ->openUrlInNewTab(),
             ])
             ->bulkActions([
                 Tables\Actions\DeleteBulkAction::make(),
             ]);
+    }
+
+    public static function getRelations(): array
+    {
+        return [
+            //
+        ];
     }
 
     public static function getPages(): array
@@ -91,13 +99,6 @@ class PageResource extends Resource
             'index' => Pages\ListPages::route('/'),
             'create' => Pages\CreatePage::route('/create'),
             'edit' => Pages\EditPage::route('/{record}/edit'),
-        ];
-    }
-
-    public static function getRelations(): array
-    {
-        return [
-            //
         ];
     }
 }

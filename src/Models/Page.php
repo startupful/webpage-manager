@@ -4,10 +4,11 @@ namespace Startupful\WebpageManager\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use VanOns\Laraberg\Traits\RendersContent;
 
 class Page extends Model
 {
-    use SoftDeletes;
+    use SoftDeletes, RendersContent;
 
     protected $fillable = [
         'title',
@@ -24,6 +25,7 @@ class Page extends Model
         'is_published' => 'boolean',
         'published_at' => 'datetime',
         'meta_data' => 'json',
+        'content' => 'string',
     ];
 
     public function parent()
@@ -34,5 +36,24 @@ class Page extends Model
     public function children()
     {
         return $this->hasMany(Page::class, 'parent_id');
+    }
+
+    public function getContentAttribute($value)
+    {
+        // If content is stored as JSON, decode it
+        if (is_string($value) && is_array(json_decode($value, true)) && (json_last_error() == JSON_ERROR_NONE)) {
+            return json_encode(json_decode($value, true));
+        }
+        return $value;
+    }
+
+    public function render_content()
+    {
+        if (method_exists($this, 'renderContent')) {
+            return $this->renderContent();
+        }
+        
+        // Laraberg의 renderContent 메서드가 없는 경우, 기본 content를 반환
+        return $this->content;
     }
 }

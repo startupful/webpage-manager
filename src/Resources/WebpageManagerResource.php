@@ -42,7 +42,7 @@ class WebpageManagerResource extends Resource
         return [
             Forms\Components\View::make('webpage-manager::components.google-preview')
                 ->columnSpan('full'),
-            Forms\Components\Section::make('')
+            Forms\Components\Section::make('SEO 설정')
                 ->schema([
                     Forms\Components\Group::make([
                         Forms\Components\FileUpload::make('homepage_favicon')
@@ -125,7 +125,91 @@ class WebpageManagerResource extends Resource
                             ->required(),
                     ])->columnSpan(1),
                 ])
-                ->columns(2)
+                ->columns(2),
+
+                Forms\Components\Section::make('테마 설정')
+                ->schema([
+                    Forms\Components\Group::make([
+                        Forms\Components\FileUpload::make('app_logo')
+                            ->label('앱 로고 이미지')
+                            ->image()
+                            ->maxSize(1024)
+                            ->directory('logos')
+                            ->visibility('public')
+                            ->downloadable()
+                            ->imagePreviewHeight('100')
+                            ->afterStateUpdated(function (Forms\Components\FileUpload $component, $state, $set) {
+                                if ($state instanceof TemporaryUploadedFile) {
+                                    $logoPath = public_path('logo.png');
+
+                                    Log::info('Uploading logo', ['state' => $state, 'path' => $state->getFilename()]);
+
+                                    try {
+                                        // 새 파일 복사
+                                        $uploadedFile = $state->store('logos', 'public');
+                                        $storedPath = Storage::disk('public')->path($uploadedFile);
+                                        File::copy($storedPath, $logoPath);
+
+                                        // 권한 설정
+                                        chmod($logoPath, 0644);
+
+                                        // 상태 업데이트
+                                        $set('app_logo', $uploadedFile);
+
+                                        Log::info('Logo uploaded successfully', ['path' => $logoPath]);
+                                    } catch (\Exception $e) {
+                                        Log::error('Failed to upload logo', ['error' => $e->getMessage()]);
+                                        throw $e;
+                                    }
+                                }
+                            }),
+                        Forms\Components\View::make('webpage-manager::components.logo-preview')
+                            ->visible(fn ($get) => file_exists(public_path('logo.png')))
+                    ])->columnSpan(1),
+                    Forms\Components\Group::make([
+                        Forms\Components\Select::make('container_width')
+                            ->label('컨테이너 넓이')
+                            ->options([
+                                'full' => '전체 화면',
+                                '1536' => '1536px',
+                                '1280' => '1280px',
+                                '1024' => '1024px',
+                                '896' => '896px',
+                                'custom' => '사용자 정의',
+                            ])
+                            ->reactive()
+                            ->afterStateUpdated(fn ($state, callable $set) => $state !== 'custom' ? $set('custom_width', null) : null)
+                            ->required(),
+                        Forms\Components\Grid::make(2)
+                            ->schema([
+                                Forms\Components\TextInput::make('custom_width')
+                                    ->label('사용자 정의 넓이')
+                                    ->numeric()
+                                    ->rules(['min:1'])
+                                    ->required()
+                                    ->visible(fn (callable $get) => $get('container_width') === 'custom'),
+                                Forms\Components\Select::make('custom_width_unit')
+                                    ->label('단위')
+                                    ->options([
+                                        'px' => 'px',
+                                        '%' => '%',
+                                        'vw' => 'vw',
+                                        'rem' => 'rem',
+                                    ])
+                                    ->default('px')
+                                    ->required()
+                                    ->visible(fn (callable $get) => $get('container_width') === 'custom'),
+                            ]),
+                        Forms\Components\ColorPicker::make('primary_color')
+                            ->label('메인 색상')
+                            ->required(),
+                        Forms\Components\ColorPicker::make('secondary_color')
+                            ->label('보조 색상')
+                            ->required(),
+                    ])->columnSpan(1),
+                ])
+                ->columns(2),
+                
         ];
     }
 
