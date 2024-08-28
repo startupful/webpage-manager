@@ -28,9 +28,9 @@ class WebpageElementResource extends Resource
                     ->schema([
                         Forms\Components\Select::make('header_template')
                             ->label('템플릿')
-                            ->options(fn () => Pages\EditWebpageElement::getTemplateOptions('headers'))
+                            ->options(fn () => Pages\EditWebpageElement::getTemplateOptions('header'))
                             ->reactive()
-                            ->afterStateUpdated(fn ($state, callable $set) => $set('header_code', Pages\EditWebpageElement::getTemplateContent('headers', $state)))
+                            ->afterStateUpdated(fn ($state, callable $set) => $set('header_code', Pages\EditWebpageElement::getTemplateContent('header', $state)))
                             ->required(),
                         Forms\Components\Textarea::make('header_code')
                             ->label('코드')
@@ -46,9 +46,9 @@ class WebpageElementResource extends Resource
                     ->schema([
                         Forms\Components\Select::make('footer_template')
                             ->label('템플릿')
-                            ->options(fn () => Pages\EditWebpageElement::getTemplateOptions('footers'))
+                            ->options(fn () => Pages\EditWebpageElement::getTemplateOptions('footer'))
                             ->reactive()
-                            ->afterStateUpdated(fn ($state, callable $set) => $set('footer_code', Pages\EditWebpageElement::getTemplateContent('footers', $state)))
+                            ->afterStateUpdated(fn ($state, callable $set) => $set('footer_code', Pages\EditWebpageElement::getTemplateContent('footer', $state)))
                             ->required(),
                         Forms\Components\Textarea::make('footer_code')
                             ->label('코드')
