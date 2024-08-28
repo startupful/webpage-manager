@@ -42,6 +42,9 @@ class WebpageManagerServiceProvider extends PackageServiceProvider
         parent::boot();
         $this->loadMigrationsFrom(__DIR__.'/../database/migrations');
         $this->loadViewsFrom(__DIR__.'/../resources/views', 'webpage-manager');
+        $this->publishes([
+            __DIR__.'/../resources/assets' => public_path('vendor/my-plugin'),
+        ], 'my-plugin-assets');
     }
 
     protected function bootLivewireComponents(): string
