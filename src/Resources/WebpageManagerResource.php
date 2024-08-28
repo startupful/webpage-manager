@@ -13,6 +13,7 @@ use Filament\Resources\Pages\Page;
 use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Http\UploadedFile;
 
 class WebpageManagerResource extends Resource
 {
