@@ -54,7 +54,10 @@ class PageResource extends Resource
                     ->nullable(),
                 Forms\Components\Textarea::make('meta_data')
                     ->label('Meta Data')
-                    ->nullable(),
+                    ->nullable()
+                    ->afterStateHydrated(function (Forms\Components\Textarea $component, $state) {
+                        $component->state(is_string($state) ? $state : json_encode($state));
+                    }),
             ]);
     }
 
