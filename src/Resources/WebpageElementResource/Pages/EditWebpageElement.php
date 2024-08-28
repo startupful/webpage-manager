@@ -17,8 +17,14 @@ class EditWebpageElement extends EditRecord
 
     public function mount(string|int $record = null): void
     {
-        $headerElement = WebpageElement::firstOrCreate(['type' => 'header']);
-        $footerElement = WebpageElement::firstOrCreate(['type' => 'footer']);
+        $headerElement = WebpageElement::firstOrCreate(
+            ['type' => 'header'],
+            ['name' => 'Header Settings', 'template' => '', 'code' => '', 'is_active' => true]
+        );
+        $footerElement = WebpageElement::firstOrCreate(
+            ['type' => 'footer'],
+            ['name' => 'Footer Settings', 'template' => '', 'code' => '', 'is_active' => true]
+        );
 
         parent::mount($headerElement->id);
 
