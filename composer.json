@@ -30,6 +30,11 @@
             ]
         }
     },
+    "scripts": {
+        "post-autoload-dump": [
+            "@php artisan vendor:publish --provider=\"VanOns\\Laraberg\\LarabergServiceProvider\" --tag=\"public\" --force"
+        ]
+    },
     "config": {
         "sort-packages": true
     },

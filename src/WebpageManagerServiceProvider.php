@@ -2,6 +2,9 @@
 
 namespace Startupful\WebpageManager;
 
+use Filament\Support\Assets\Asset;
+use Filament\Support\Assets\Css;
+use Filament\Support\Assets\Js;
 use Filament\Support\Assets\AlpineComponent;
 use Filament\Support\Facades\FilamentAsset;
 use Filament\Support\Facades\FilamentIcon;
@@ -36,6 +39,14 @@ class WebpageManagerServiceProvider extends PackageServiceProvider
                     ->label('Webpage Manager'),
             ]);
         });
+
+           // Register assets
+           FilamentAsset::register([
+            Css::make('laraberg-css', asset('vendor/laraberg/css/laraberg.css')),
+            Js::make('laraberg-js', asset('vendor/laraberg/js/laraberg.js')),
+        ], package: 'webpage-manager');
+
+        $this->publishLarabergAssets();
     }
 
     public function boot()
@@ -70,5 +81,18 @@ class WebpageManagerServiceProvider extends PackageServiceProvider
     protected function bootLivewireComponents(): string
     {
         return '';
+    }
+
+    protected function publishLarabergAssets(): void
+    {
+        $this->callAfterResolving('plugins', function () {
+            if (!file_exists(public_path('vendor/laraberg'))) {
+                Artisan::call('vendor:publish', [
+                    '--provider' => 'VanOns\Laraberg\LarabergServiceProvider',
+                    '--tag' => 'public',
+                    '--force' => true
+                ]);
+            }
+        });
     }
 }
