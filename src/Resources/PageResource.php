@@ -54,10 +54,9 @@ class PageResource extends Resource
                     ->nullable(),
                 Forms\Components\Textarea::make('meta_data')
                     ->label('Meta Data')
-                    ->nullable()
-                    ->afterStateHydrated(function (Forms\Components\Textarea $component, $state) {
-                        $component->state(is_string($state) ? $state : json_encode($state));
-                    }),
+                    ->nullable(),
+                Forms\Components\Hidden::make('content')
+                    ->default('.')  // 빈 값의 띄어쓰기 하나
             ]);
     }
 

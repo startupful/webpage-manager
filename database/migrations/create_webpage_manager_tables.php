@@ -17,7 +17,7 @@ return new class extends Migration
             $table->foreignId('parent_id')->nullable()->constrained('pages')->onDelete('set null');
             $table->boolean('is_published')->default(false);
             $table->timestamp('published_at')->nullable();
-            $table->json('meta_data')->nullable();
+            $table->text('meta_data')->nullable();
             $table->timestamps();
             $table->softDeletes();
         });
