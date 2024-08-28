@@ -2,9 +2,6 @@
 
 namespace Startupful\WebpageManager;
 
-use Filament\Support\Assets\Asset;
-use Filament\Support\Assets\Css;
-use Filament\Support\Assets\Js;
 use Filament\Support\Assets\AlpineComponent;
 use Filament\Support\Facades\FilamentAsset;
 use Filament\Support\Facades\FilamentIcon;
@@ -40,13 +37,9 @@ class WebpageManagerServiceProvider extends PackageServiceProvider
             ]);
         });
 
-           // Register assets
-           FilamentAsset::register([
-            Css::make('laraberg-css', asset('vendor/laraberg/css/laraberg.css')),
-            Js::make('laraberg-js', asset('vendor/laraberg/js/laraberg.js')),
-        ], package: 'webpage-manager');
-
-        $this->publishLarabergAssets();
+        $this->publishes([
+            __DIR__.'/../public' => public_path('vendor/webpage-manager'),
+        ], 'webpage-manager-assets');
     }
 
     public function boot()
@@ -54,21 +47,6 @@ class WebpageManagerServiceProvider extends PackageServiceProvider
         parent::boot();
         $this->loadMigrationsFrom(__DIR__.'/../database/migrations');
         $this->loadViewsFrom(__DIR__.'/../resources/views', 'webpage-manager');
-
-        // Publish Laraberg assets
-        $this->publishes([
-            base_path('vendor/van-ons/laraberg/public') => public_path('vendor/laraberg'),
-        ], 'laraberg-assets');
-
-        // Publish Webpage Manager assets
-        $this->publishes([
-            __DIR__.'/../resources/assets' => public_path('vendor/webpage-manager'),
-        ], 'webpage-manager-assets');
-
-            // Publish config file
-            $this->publishes([
-                __DIR__.'/../config/webpage-manager.php' => config_path('webpage-manager.php'),
-            ], 'webpage-manager-config');
     }
 
     public function registeringPackage()
@@ -81,18 +59,5 @@ class WebpageManagerServiceProvider extends PackageServiceProvider
     protected function bootLivewireComponents(): string
     {
         return '';
-    }
-
-    protected function publishLarabergAssets(): void
-    {
-        $this->callAfterResolving('plugins', function () {
-            if (!file_exists(public_path('vendor/laraberg'))) {
-                Artisan::call('vendor:publish', [
-                    '--provider' => 'VanOns\Laraberg\LarabergServiceProvider',
-                    '--tag' => 'public',
-                    '--force' => true
-                ]);
-            }
-        });
     }
 }
