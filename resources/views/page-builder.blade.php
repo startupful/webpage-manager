@@ -22,43 +22,72 @@
     <script src="{{ app('webpage-manager-asset')->url('js/laraberg.js') }}"></script>
     
     <style>
+           #editor-container {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            min-height: calc(100vh - 60px);
+        }
+
+        #header {
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 10px;
+            background-color: #f8f8f8;
+            border-bottom: 1px solid #ddd;
+        }
+
         #editor {
-            min-height: 600px;
+            flex: 1;
+            min-height: calc(100vh - 60px);
             border: 1px solid #ddd;
             margin-bottom: 20px;
+        }
+
+        #save-button {
+            padding: 10px 20px;
+            background-color: #6366f1;
+            color: white;
+            border: none;
+            cursor: pointer;
         }
     </style>
 </head>
 <body>
-    <h1>Edit Page: {{ $page->title ?? 'Unknown' }}</h1>
+<div id="editor-container">
+        <div id="header">
+            <h1>{{ $page->title ?? 'Unknown' }}</h1>
+            <button id="save-button" onclick="document.getElementById('page-form').submit()">Save</button>
+        </div>
 
-    @if($page)
-        <form id="page-form" action="{{ route('page.builder.update', ['page' => $page->id]) }}" method="POST">
-            @csrf
-            @method('PUT')
-            <textarea id="content" name="content" hidden>{{ $page->content }}</textarea>
-        </form>
+        @if($page)
+            <form id="page-form" action="{{ route('page.builder.update', ['page' => $page->id]) }}" method="POST">
+                @csrf
+                @method('PUT')
+                <textarea id="content" name="content" hidden>{{ $page->content }}</textarea>
+            </form>
 
-        <button onclick="document.getElementById('page-form').submit()">Save Changes</button>
-
-        <script>
-            window.addEventListener('load', function() {
-                if (typeof Laraberg !== 'undefined') {
-                    Laraberg.init('content', { 
-                        height: '600px',
-                        laravelFilemanager: false,
-                        sidebar: true,
-                        contentCss: [
-                            'https://cdn.tailwindcss.com',
-                        ]
-                    });
-                } else {
-                    console.error('Laraberg is not defined. Make sure the script is loaded correctly.');
-                }
-            });
-        </script>
-    @else
-        <p>Page not found.</p>
-    @endif
+            <script>
+                window.addEventListener('load', function() {
+                    if (typeof Laraberg !== 'undefined') {
+                        Laraberg.init('content', { 
+                            height: 'calc(100vh - 125px)',
+                            laravelFilemanager: false,
+                            sidebar: true,
+                            contentCss: [
+                                'https://cdn.tailwindcss.com',
+                            ]
+                        });
+                    } else {
+                        console.error('Laraberg is not defined. Make sure the script is loaded correctly.');
+                    }
+                });
+            </script>
+        @else
+            <p>Page not found.</p>
+        @endif
+    </div>
 </body>
 </html>

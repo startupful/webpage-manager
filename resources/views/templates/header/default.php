@@ -1,9 +1,11 @@
-<header id="main-header" class="w-full top-0 fixed transition-shadow duration-300 ease-in-out">
+<header id="main-header" class="bg-white z-[1000] w-full top-0 fixed transition-shadow duration-300 ease-in-out">
   <div class="custom-container-width mx-auto py-4 px-4 md:py-0 md:px-0">
     <div class="flex h-10 md:h-20 items-center justify-between">
       <!-- Logo -->
       <div class="flex items-center">
+        <a href="/" aria-label="Go home" title="Company" class="inline-flex items-center">
         <img src="/logo.png" alt="Logo" class="h-6 w-full mr-3 object-contain object-left">
+        </a>
       </div>
       
       <!-- Navigation -->

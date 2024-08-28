@@ -19,11 +19,21 @@ class EditWebpageElement extends EditRecord
     {
         $headerElement = WebpageElement::firstOrCreate(
             ['type' => 'header'],
-            ['name' => 'Header Settings', 'template' => '', 'code' => '', 'is_active' => true]
+            [
+                'name' => 'default', 
+                'template' => 'default', 
+                'code' => $this->getTemplateContent('headers', 'default'),
+                'is_active' => true
+            ]
         );
         $footerElement = WebpageElement::firstOrCreate(
             ['type' => 'footer'],
-            ['name' => 'Footer Settings', 'template' => '', 'code' => '', 'is_active' => true]
+            [
+                'name' => 'default', 
+                'template' => 'default', 
+                'code' => $this->getTemplateContent('footers', 'default'),
+                'is_active' => true
+            ]
         );
 
         parent::mount($headerElement->id);
