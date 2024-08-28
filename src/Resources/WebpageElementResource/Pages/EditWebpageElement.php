@@ -22,7 +22,7 @@ class EditWebpageElement extends EditRecord
             [
                 'name' => 'default', 
                 'template' => 'default', 
-                'code' => $this->getTemplateContent('headers', 'default'),
+                'code' => $this->getTemplateContent('header', 'default'),
                 'is_active' => true
             ]
         );
@@ -31,7 +31,7 @@ class EditWebpageElement extends EditRecord
             [
                 'name' => 'default', 
                 'template' => 'default', 
-                'code' => $this->getTemplateContent('footers', 'default'),
+                'code' => $this->getTemplateContent('footer', 'default'),
                 'is_active' => true
             ]
         );
