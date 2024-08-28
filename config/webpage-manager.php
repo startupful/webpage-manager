@@ -9,6 +9,10 @@ return [
         [
             'provider' => 'Startupful\WebpageManager\WebpageManagerServiceProvider',
             'tag' => 'laraberg-assets'
+        ],
+        [
+            'provider' => 'Startupful\WebpageManager\WebpageManagerServiceProvider',
+            'tag' => 'webpage-manager-assets'
         ]
     ]
 ];
