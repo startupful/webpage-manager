@@ -18,8 +18,8 @@
     <script src="https://unpkg.com/@wordpress/editor@9.25.4/build/index.js"></script>
     
     <!-- Laraberg styles and scripts -->
-    <link rel="stylesheet" href="{{ asset('vendor/laraberg/css/laraberg.css') }}">
-    <script src="{{ asset('vendor/laraberg/js/laraberg.js') }}"></script>
+    <link rel="stylesheet" href="{{ app('webpage-manager-asset')->url('css/laraberg.css') }}">
+    <script src="{{ app('webpage-manager-asset')->url('js/laraberg.js') }}"></script>
     
     <style>
         #editor {

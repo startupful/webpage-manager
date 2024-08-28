@@ -30,6 +30,11 @@
             ]
         }
     },
+    "scripts": {
+        "post-autoload-dump": [
+            "@php artisan vendor:publish --tag=webpage-manager-assets --force"
+        ]
+    },
     "config": {
         "sort-packages": true
     },

@@ -25,7 +25,8 @@ class WebpageManagerServiceProvider extends PackageServiceProvider
             ->hasViews()
             ->hasRoute('web')
             ->hasMigrations(['create_webpage_manager_tables'])
-            ->runsMigrations();
+            ->runsMigrations()
+            ->hasAssets();
     }
 
     public function packageBooted(): void
@@ -36,6 +37,15 @@ class WebpageManagerServiceProvider extends PackageServiceProvider
                     ->label('Webpage Manager'),
             ]);
         });
+
+        $this->app->singleton('webpage-manager-asset', function ($app) {
+            return new class {
+                public function url($path)
+                {
+                    return asset("vendor/webpage-manager/{$path}");
+                }
+            };
+        });
     }
 
     public function boot()
@@ -43,9 +53,6 @@ class WebpageManagerServiceProvider extends PackageServiceProvider
         parent::boot();
         $this->loadMigrationsFrom(__DIR__.'/../database/migrations');
         $this->loadViewsFrom(__DIR__.'/../resources/views', 'webpage-manager');
-        $this->publishes([
-            __DIR__.'/../public' => public_path('vendor/webpage-manager'),
-        ], 'webpage-manager-assets');
     }
 
     public function registeringPackage()
