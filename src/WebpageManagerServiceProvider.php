@@ -43,9 +43,15 @@ class WebpageManagerServiceProvider extends PackageServiceProvider
         parent::boot();
         $this->loadMigrationsFrom(__DIR__.'/../database/migrations');
         $this->loadViewsFrom(__DIR__.'/../resources/views', 'webpage-manager');
+        // Publish Laraberg assets
         $this->publishes([
             base_path('vendor/van-ons/laraberg/public') => public_path('vendor/laraberg'),
         ], 'laraberg-assets');
+
+        // Publish Webpage Manager assets
+        $this->publishes([
+            __DIR__.'/../resources/assets' => public_path('vendor/webpage-manager'),
+        ], 'webpage-manager-assets');
     }
 
     protected function bootLivewireComponents(): string

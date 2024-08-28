@@ -5,6 +5,10 @@ return [
         [
             'provider' => 'VanOns\Laraberg\LarabergServiceProvider',
             'tag' => 'public'
+        ],
+        [
+            'provider' => 'Startupful\WebpageManager\WebpageManagerServiceProvider',
+            'tag' => 'laraberg-assets'
         ]
     ]
 ];
