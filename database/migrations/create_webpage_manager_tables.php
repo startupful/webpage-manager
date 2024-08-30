@@ -51,7 +51,7 @@ return new class extends Migration
 
     private function insertDefaultWebpageElement($type)
     {
-        $templatePath = base_path("packages/startupful/webpage-manager/resources/views/templates/{$type}/default.php");
+        $templatePath = base_path("vendor/startupful/webpage-manager/resources/views/templates/{$type}/default.php");
         $code = file_exists($templatePath) ? file_get_contents($templatePath) : "<!-- Default {$type} template not found -->";
 
         DB::table('webpage_elements')->insert([
