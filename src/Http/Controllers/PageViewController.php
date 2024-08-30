@@ -24,36 +24,55 @@ class PageViewController extends Controller
 
     public function show($slug)
     {
+        Log::info("Attempting to show page with slug: " . $slug);
+
         try {
             if ($this->isAsset($slug)) {
                 return $this->handleAssetRequest($slug);
             }
 
             $page = Page::where('slug', $slug)->first();
-            
+
             if (!$page) {
+                Log::info("Page not found for slug: " . $slug);
                 abort(404);
             }
 
-            if (!$page->is_published) {
-                return $this->handleUnpublished($page);
-            }
-
-            // Fetch active header and footer elements
-            $headers = WebpageElement::headers()->active()->get();
-            $footers = WebpageElement::footers()->active()->get();
-
-            // Fetch menu data
-            $menuData = $this->getMenuData();
-            $headerMenuData = $this->getHeaderMenuData($menuData);
-            $footerMenuData = $this->getFooterMenuData($menuData);
-            $customStyles = $this->getCustomStyles();
-
-            return view('webpage-manager::page-view', compact('page', 'headers', 'footers', 'menuData', 'headerMenuData', 'footerMenuData', 'customStyles'));
+            return $this->renderPage($page);
         } catch (\Exception $e) {
             Log::error("Error showing page: " . $e->getMessage());
             return $this->handleError($e);
         }
+    }
+
+    private function renderPage($page)
+    {
+        Log::info("Page found: " . $page->id);
+
+        if (!$page->is_published) {
+            Log::info("Page is not published: " . $page->id);
+            return $this->handleUnpublished($page);
+        }
+
+        // Fetch active header and footer elements
+        $headers = WebpageElement::headers()->active()->get();
+        $footers = WebpageElement::footers()->active()->get();
+
+        // Fetch menu data
+        $menuData = $this->getMenuData();
+        Log::info("Menu data fetched: " . json_encode($menuData));
+
+        $headerMenuData = $this->getHeaderMenuData($menuData);
+        Log::info("Header menu data: " . json_encode($headerMenuData));
+
+        $footerMenuData = $this->getFooterMenuData($menuData);
+        Log::info("Footer menu data: " . json_encode($footerMenuData));
+
+        $customStyles = $this->getCustomStyles();
+
+        Log::info("Rendering view for page: " . $page->id);
+
+        return view('webpage-manager::page-view', compact('page', 'headers', 'footers', 'menuData', 'headerMenuData', 'footerMenuData', 'customStyles'));
     }
 
     private function handleUnpublished($page)
