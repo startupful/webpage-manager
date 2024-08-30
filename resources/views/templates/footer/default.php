@@ -1,4 +1,4 @@
-<section id="footer" class="px-4">
+<section id="footer" class="bg-white rounded px-4">
   <div class="mx-auto pt-16">
     <div class="custom-container-width row-gap-6 mx-auto mb-8 grid gap-10 sm:grid-cols-2 lg:grid-cols-4">
       <div class="sm:col-span-3">

@@ -1,14 +1,24 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ $page->title }}</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="{{ asset('vendor/laraberg/css/laraberg.css') }}">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css">
-    <style>
-        {!! $customStyles !!}
+@php
+    use Illuminate\Support\Facades\Log;
+    use Startupful\WebpageManager\Resources\WebpageElementResource;
+    
+    $record = $this->getRecord();
+    
+    $headerCode = $record->code ?? '';
+
+    $headerCode = preg_replace('/\bfixed\b/', '', $headerCode);
+    
+    $menuData = WebpageElementResource::getMenuData();
+    
+    try {
+        $renderedContent = Illuminate\Support\Facades\Blade::render($headerCode);
+    } catch (\Exception $e) {
+        $renderedContent = '<div class="text-red-500">Error rendering template: ' . $e->getMessage() . '</div>';
+    }
+@endphp
+
+{!! WebpageElementResource::getTailwindCdn() !!}
+<style>
         .mobile-menu {
             transition: transform 0.3s ease-in-out;
             transform: translateX(-100%);
@@ -38,28 +48,14 @@
             display: block;
         }
     </style>
-</head>
-<body class="font-sans antialiased">
-    <div class="min-h-screen">
-            @foreach($headers as $header)
-                {!! $header->code !!}
-            @endforeach
-
-        <main class="custom-container-width mx-auto">
-            {!! $page->render_content() !!}
-        </main>
-
-        <footer class="mt-8 text-gray-600">
-            @foreach($footers as $footer)
-                {!! $footer->code !!}
-            @endforeach
-        </footer>
+<div class="h-20 rounded">
+    <div class="preview-container">
+        {!! $renderedContent !!}
     </div>
+</div>
 
-    <script src="{{ asset('vendor/laraberg/js/laraberg.js') }}"></script>
-    <script>
-    var headerMenuData = @json($headerMenuData);
-    var footerMenuData = @json($footerMenuData);
+<script>
+    var headerMenuData = @json($menuData['headerMenuData']);
 
     function renderMenu(menuData, targetId, isFooter, isMobile = false) {
         var targetElement = document.getElementById(targetId);
@@ -106,36 +102,6 @@
     document.addEventListener('DOMContentLoaded', function() {
         renderMenu(headerMenuData, 'headerMenu', false);
         renderMenu(headerMenuData, 'mobileMenu', false, true);
-        renderMenu(footerMenuData, 'footerMenu', true);
-
-        const header = document.getElementById('main-header');
-        const scrollThreshold = 50;
-
-        if (header) {
-            window.addEventListener('scroll', function() {
-                if (window.scrollY > scrollThreshold) {
-                    header.classList.add('shadow-[0px_2px_4px_rgba(0,0,0,0.1)]');
-                } else {
-                    header.classList.remove('shadow-[0px_2px_4px_rgba(0,0,0,0.1)]');
-                }
-            });
-        } else {
-            console.error('Header element not found');
-        }
-
-        var mobileMenuButton = document.getElementById('mobile-menu-button');
-        var closeMobileMenuButton = document.getElementById('close-mobile-menu');
-        var mobileMenu = document.getElementById('mobile-menu');
-
-        if (mobileMenuButton && mobileMenu && closeMobileMenuButton) {
-            mobileMenuButton.addEventListener('click', function() {
-                mobileMenu.classList.add('active');
-            });
-
-            closeMobileMenuButton.addEventListener('click', function() {
-                mobileMenu.classList.remove('active');
-            });
-        }
 
         // Submenu behavior
         var headerMenu = document.getElementById('headerMenu');
@@ -161,6 +127,4 @@
             });
         }
     });
-    </script>
-</body>
-</html>
+</script>

@@ -11,10 +11,19 @@ use Illuminate\Support\Facades\Log;
 
 class PageViewController extends Controller
 {
+    public function showMain()
+    {
+        $page = Page::where('slug', 'main')->first();
+
+        if (!$page) {
+            abort(404);
+        }
+
+        return $this->renderPage($page);
+    }
+
     public function show($slug)
     {
-        Log::info("Attempting to show page with slug: " . $slug);
-
         try {
             if ($this->isAsset($slug)) {
                 return $this->handleAssetRequest($slug);
@@ -23,14 +32,10 @@ class PageViewController extends Controller
             $page = Page::where('slug', $slug)->first();
             
             if (!$page) {
-                Log::info("Page not found for slug: " . $slug);
                 abort(404);
             }
 
-            Log::info("Page found: " . $page->id);
-
             if (!$page->is_published) {
-                Log::info("Page is not published: " . $page->id);
                 return $this->handleUnpublished($page);
             }
 
@@ -40,17 +45,9 @@ class PageViewController extends Controller
 
             // Fetch menu data
             $menuData = $this->getMenuData();
-            Log::info("Menu data fetched: " . json_encode($menuData));
-
             $headerMenuData = $this->getHeaderMenuData($menuData);
-            Log::info("Header menu data: " . json_encode($headerMenuData));
-
             $footerMenuData = $this->getFooterMenuData($menuData);
-            Log::info("Footer menu data: " . json_encode($footerMenuData));
-
             $customStyles = $this->getCustomStyles();
-
-            Log::info("Rendering view for page: " . $page->id);
 
             return view('webpage-manager::page-view', compact('page', 'headers', 'footers', 'menuData', 'headerMenuData', 'footerMenuData', 'customStyles'));
         } catch (\Exception $e) {
@@ -94,12 +91,6 @@ class PageViewController extends Controller
     {
         $menuSetting = PluginSetting::where('key', 'menu')->first();
         $menuData = $menuSetting ? json_decode($menuSetting->value, true) : null;
-        
-        if ($menuData === null) {
-            Log::warning("Menu setting not found or invalid JSON.");
-        } else {
-            Log::info("Raw menu data: " . $menuSetting->value);
-        }
 
         return $menuData;
     }
@@ -107,20 +98,16 @@ class PageViewController extends Controller
     private function getHeaderMenuData($menuData)
     {
         if (isset($menuData['unify_menus']) && $menuData['unify_menus']) {
-            Log::info("Using unified menu for header");
             return $menuData['unified_menu'] ?? [];
         }
-        Log::info("Using separate header menu");
         return $menuData['header_menu'] ?? [];
     }
 
     private function getFooterMenuData($menuData)
     {
         if (isset($menuData['unify_menus']) && $menuData['unify_menus']) {
-            Log::info("Using unified menu for footer");
             return $menuData['unified_menu'] ?? [];
         }
-        Log::info("Using separate footer menu");
         return $menuData['footer_menu'] ?? [];
     }
 
@@ -129,18 +116,16 @@ class PageViewController extends Controller
         $themeSetting = PluginSetting::where('key', 'theme')->first();
         
         if (!$themeSetting) {
-            Log::warning("Theme setting not found. Using default values.");
             return $this->getDefaultStyles();
         }
 
         $themeData = json_decode($themeSetting->value, true);
 
         if (json_last_error() !== JSON_ERROR_NONE) {
-            Log::error("Error decoding theme JSON: " . json_last_error_msg());
             return $this->getDefaultStyles();
         }
 
-        $containerWidth = $themeData['container_width'] ?? '1280';
+        $containerWidth = $themeData['container_width'] ?? '1280px';
         $primaryColor = $themeData['primary_color'] ?? '#000000';
         $secondaryColor = $themeData['secondary_color'] ?? '#ffffff';
 

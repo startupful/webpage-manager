@@ -10,6 +10,8 @@ use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\Toggle;
 use Filament\Forms\Components\Section;
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class EditWebpageElement extends EditRecord
 {
@@ -21,7 +23,6 @@ class EditWebpageElement extends EditRecord
             ['type' => 'header'],
             [
                 'name' => 'default', 
-                'template' => 'default', 
                 'code' => $this->getTemplateContent('header', 'default'),
                 'is_active' => true
             ]
@@ -30,7 +31,6 @@ class EditWebpageElement extends EditRecord
             ['type' => 'footer'],
             [
                 'name' => 'default', 
-                'template' => 'default', 
                 'code' => $this->getTemplateContent('footer', 'default'),
                 'is_active' => true
             ]
@@ -53,40 +53,54 @@ class EditWebpageElement extends EditRecord
         return [
             Section::make('헤더')
                 ->schema([
+                    Toggle::make('header_is_active')
+                        ->label('활성화')
+                        ->helperText('활성화/비활성화에 따라 홈페이지에 적용됩니다. 헤더나 푸터가 필요 없는 홈페이지의 경우 비활성화, 일반적인 홈페이지라면 활성화를 시켜주세요.')
+                        ->onIcon('heroicon-s-check')
+                        ->offIcon('heroicon-s-x-mark')
+                        ->reactive(),
                     Select::make('header_template')
                         ->label('템플릿')
                         ->options(fn () => self::getTemplateOptions('header'))
                         ->reactive()
-                        ->afterStateUpdated(fn ($state, callable $set) => $set('header_code', self::getTemplateContent('header', $state))),
+                        ->afterStateUpdated(function ($state, callable $set) {
+                            if ($state !== 'CUSTOM') {
+                                $code = $this->getTemplateContent('header', $state);
+                                $set('header_code', $code);
+                            }
+                        })
+                        ->visible(fn (callable $get) => $get('header_is_active')),
                     Textarea::make('header_code')
                         ->label('코드')
-                        ->required(),
+                        ->required()
+                        ->visible(fn (callable $get) => $get('header_is_active') && $get('header_template') === 'CUSTOM'),
                 ])
-                ->aside(function () {
-                    return Toggle::make('header_is_active')
+                ->columnSpan('full'),
+            Section::make('푸터')
+                ->schema([
+                    Toggle::make('footer_is_active')
                         ->label('활성화')
                         ->helperText('활성화/비활성화에 따라 홈페이지에 적용됩니다. 헤더나 푸터가 필요 없는 홈페이지의 경우 비활성화, 일반적인 홈페이지라면 활성화를 시켜주세요.')
                         ->onIcon('heroicon-s-check')
-                        ->offIcon('heroicon-s-x-mark');
-                }),
-            Section::make('푸터')
-                ->schema([
+                        ->offIcon('heroicon-s-x-mark')
+                        ->reactive(),
                     Select::make('footer_template')
                         ->label('템플릿')
                         ->options(fn () => self::getTemplateOptions('footer'))
                         ->reactive()
-                        ->afterStateUpdated(fn ($state, callable $set) => $set('footer_code', self::getTemplateContent('footer', $state))),
+                        ->afterStateUpdated(function ($state, callable $set) {
+                            if ($state !== 'CUSTOM') {
+                                $code = $this->getTemplateContent('footer', $state);
+                                $set('footer_code', $code);
+                            }
+                        })
+                        ->visible(fn (callable $get) => $get('footer_is_active')),
                     Textarea::make('footer_code')
                         ->label('코드')
-                        ->required(),
+                        ->required()
+                        ->visible(fn (callable $get) => $get('footer_is_active') && $get('footer_template') === 'CUSTOM'),
                 ])
-                ->aside(function () {
-                    return Toggle::make('footer_is_active')
-                        ->label('활성화')
-                        ->helperText('활성화/비활성화에 따라 홈페이지에 적용됩니다. 헤더나 푸터가 필요 없는 홈페이지의 경우 비활성화, 일반적인 홈페이지라면 활성화를 시켜주세요.')
-                        ->onIcon('heroicon-s-check')
-                        ->offIcon('heroicon-s-x-mark');
-                }),
+                ->columnSpan('full'),
         ];
     }
 
@@ -104,23 +118,12 @@ class EditWebpageElement extends EditRecord
     {
         $data = $this->form->getState();
 
-        WebpageElement::updateOrCreate(
-            ['type' => 'header'],
-            [
-                'name' => $data['header_template'],
-                'code' => $data['header_code'],
-                'is_active' => $data['header_is_active'],
-            ]
-        );
+        Log::info('Form data before save:', $data);
 
-        WebpageElement::updateOrCreate(
-            ['type' => 'footer'],
-            [
-                'name' => $data['footer_template'],
-                'code' => $data['footer_code'],
-                'is_active' => $data['footer_is_active'],
-            ]
-        );
+        DB::transaction(function () use ($data) {
+            $this->updateElement('header', $data);
+            $this->updateElement('footer', $data);
+        });
 
         if ($shouldSendSavedNotification) {
             $this->getSavedNotification()->send();
@@ -131,11 +134,39 @@ class EditWebpageElement extends EditRecord
         }
     }
 
+    private function updateElement(string $type, array $data): void
+    {
+        $isActive = $data["{$type}_is_active"] ?? false;
+        $name = $data["{$type}_template"] ?? 'default';
+        $code = $data["{$type}_code"] ?? '';
+
+        // If the code is empty, fetch it from the template
+        if (empty($code)) {
+            $code = $this->getTemplateContent($type, $name);
+        }
+
+        Log::info("Updating {$type} element:", [
+            'is_active' => $isActive,
+            'name' => $name,
+            'code' => $code,
+        ]);
+
+        $element = WebpageElement::firstOrNew(['type' => $type]);
+
+        $element->name = $name;
+        $element->code = $code;
+        $element->is_active = $isActive;
+
+        $element->save();
+
+        Log::info("{$type} element saved:", $element->toArray());
+    }
+
     public static function getTemplateOptions(string $type): array
     {
         $path = __DIR__ . "/../../../../resources/views/templates/{$type}";
         $files = File::files($path);
-        
+
         return collect($files)->mapWithKeys(function ($file) {
             $name = $file->getFilenameWithoutExtension();
             return [$name => ucfirst($name)];
@@ -145,16 +176,52 @@ class EditWebpageElement extends EditRecord
     public static function getTemplateContent(string $type, string $name): string
     {
         $path = __DIR__ . "/../../../../resources/views/templates/{$type}/{$name}.php";
-        
+
+        Log::info("Getting template content for {$type}/{$name}", ['path' => $path]);
+
         if (!File::exists($path)) {
+            Log::warning("Template file not found: {$path}");
             return '';
         }
-        
-        return File::get($path);
+
+        $content = File::get($path);
+        Log::info("Template content retrieved", ['content' => $content]);
+
+        return $content;
     }
 
     protected function getRedirectUrl(): string
     {
         return $this->getResource()::getUrl('index');
+    }
+
+    public static function getMenuData()
+    {
+        $menuSetting = PluginSetting::where('plugin_name', 'webpage-manager')
+            ->where('key', 'menu')
+            ->first();
+
+        if (!$menuSetting) {
+            return [
+                'unify_menus' => false,
+                'header_menu' => [],
+                'footer_menu' => [],
+                'unified_menu' => [],
+            ];
+        }
+
+        $menuData = json_decode($menuSetting->value, true);
+
+        if ($menuData['unify_menus']) {
+            return [
+                'headerMenuData' => $menuData['unified_menu'],
+                'footerMenuData' => $menuData['unified_menu'],
+            ];
+        } else {
+            return [
+                'headerMenuData' => $menuData['header_menu'],
+                'footerMenuData' => $menuData['footer_menu'],
+            ];
+        }
     }
 }
